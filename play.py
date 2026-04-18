@@ -1,3 +1,4 @@
+import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -17,7 +18,7 @@ class Card:
         self.denom = key  % Card.numDenom
 
 
-    def getKey(self):
+    def getKey(self):             # 1-1 correspondence between cards and key (integers)
         return self.suit * Card.numDenom + self.denom
 
 
@@ -42,16 +43,55 @@ class Hand:   # of cards
         for c in self.cards:
             result = result + " " + str(c)
         return result
+
+
+class Player:
+
+    def __init__(self, id):
+        self.id   = id
+        self.hand = Hand()
+
+    def __str__(self):
+        return "Player " + str(self.id) + ": " + str(self.hand)
+        
             
+    def add(self, card):
+        self.hand.add(card)
+
+
+
+class Env:   # all the players and table contents
+    def __init__(self, numPlayers):
+        self.players = [Player(i) for i in range(numPlayers)]
+        self.deck = [Card(key) for key in range(Card.numCards)]
+        random.shuffle(self.deck)
+
+
+    def getCard(self):
+        c = self.deck[0]
+        self.deck = self.deck[1:]
+        return c
+
+    def deal(self):
+        for c in range(2):  # 2 cards to each player
+            for p in self.players:
+                p.add(self.getCard())
+
+    def __str__(self):
+        result = ""
+        for p in self.players:
+            result = result + " " + str(p) + "\n"
+        return result
+        
+
+                     
+        
         
 if __name__ == "__main__":
 
+    random.seed(42)
+    env = Env(2)
+    print(env)
+    env.deal()
+    print(env)
     
-    deck = [Card(Card.numCards - i - 1) for i in range(Card.numCards)]
-
-    hand = Hand()
-    
-    for d in deck:
-        hand.add(d)
-        print("added", d, "to", hand)
-        
