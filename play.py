@@ -28,7 +28,7 @@ class Card:
 
     
 
-class Hand:   # of cards
+class CardSet:   # of cards
 
     def __init__(self):
         self.cards = []
@@ -49,14 +49,14 @@ class Player:
 
     def __init__(self, id):
         self.id   = id
-        self.hand = Hand()
+        self.inHand = CardSet()
 
     def __str__(self):
-        return "Player " + str(self.id) + ": " + str(self.hand)
+        return "Player " + str(self.id) + ": " + str(self.inHand)
         
             
     def add(self, card):
-        self.hand.add(card)
+        self.inHand.add(card)
 
 
 
