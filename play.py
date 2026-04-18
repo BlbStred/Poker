@@ -78,9 +78,14 @@ class Env:   # all the players and table contents
                 p.add(self.getCard())
 
     def __str__(self):
-        result = ""
+        result = "Deck:"
+        for c in self.deck:
+            result += " " + str(c) 
+        result += "\n"
+        
         for p in self.players:
-            result = result + " " + str(p) + "\n"
+            result += str(p) + "\n"
+            
         return result
         
 
