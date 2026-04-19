@@ -65,9 +65,11 @@ class Env:   # all the players and table contents
         self.players = [Player(i) for i in range(numPlayers)]
         self.deck = [Card(key) for key in range(Card.numCards)]
         random.shuffle(self.deck)
+        self.button = 0             #dealer
+        
 
 
-    def getCard(self):
+    def cardRemovedFromDeck(self):
         c = self.deck[0]
         self.deck = self.deck[1:]
         return c
@@ -75,7 +77,7 @@ class Env:   # all the players and table contents
     def deal(self):
         for c in range(2):  # 2 cards to each player
             for p in self.players:
-                p.add(self.getCard())
+                p.add(self.cardRemovedFromDeck())
 
     def __str__(self):
         result = "Deck:"
