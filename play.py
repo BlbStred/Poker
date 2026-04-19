@@ -59,6 +59,10 @@ class Player:
         self.inHand.add(card)
 
 
+    def cardValue(self):
+        return 1-self.id
+
+
 
 class Env:   # all the players and table contents
     def __init__(self, numPlayers):
@@ -92,9 +96,20 @@ class Env:   # all the players and table contents
         
 
     def oneHand(self):
-        self.button     = (self.button + 1) % self.players
-        self.smallBlind = (self.button + 1) % self.players
-        self.BigBind    = (self.button + 2) % self.players                
+        self.button     = (self.button + 1) % len(self.players)
+        self.smallBlind = (self.button + 1) % len(self.players)
+        self.BigBind    = (self.button + 2) % len(self.players)
+
+
+    def oneGame(self):
+        numHands = 5
+        self.deal()
+        for h in range(numHands):
+            self.oneHand()
+
+        # find winner
+        winner = max(self.players, key = Player.cardValue)
+        print("winner:", winner)
                      
         
         
@@ -102,7 +117,6 @@ if __name__ == "__main__":
 
     random.seed(42)
     env = Env(2)
-    print(env)
-    env.deal()
-    print(env)
+    env.oneGame()
+
     
