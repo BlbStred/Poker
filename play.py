@@ -1,4 +1,5 @@
 import random
+from itertools import chain
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -49,6 +50,9 @@ class Player:
 
     def __init__(self, id):
         self.id   = id
+
+    
+    def resetForNewHand(self):
         self.inHand = CardSet()
 
     def __str__(self):
@@ -70,12 +74,14 @@ class Player:
 class Table:
 
     def __init__(self, numPlayers):
-        self.pot    = 0                     # total money
-        self.inPlay = [True for i in range(numPlayers)]     # whether a player is still in 
-        self.bets   = [[]   for i in range(numPlayers)]     # sequence of bets for each player
+        self.numPlayers = numPlayers
         self.button = 0                                     # dealer is arbitrary
-        self.advanceButton()
 
+    def resetForNewHand(self):
+        self.pot    = 0                     # total money
+        self.inPlay = [True for i in range(self.numPlayers)]     # whether a player is still in 
+        self.bets   = [[]   for i in range(self.numPlayers)]     # sequence of bets for each player
+        self.advanceButton()
 
     def advanceButton(self):
         numPlayers = len(self.inPlay)
@@ -112,10 +118,19 @@ class Env:   # all the players and table contents
     def __init__(self, numPlayers):
         self.table = Table(numPlayers)
         self.players = [Player(i) for i in range(numPlayers)]
+        
+
+    def resetForNewHand(self):
+        numPlayers = len(self.players)
+        for i in range(numPlayers):
+            self.players[i].resetForNewHand()
+
+        self.table.resetForNewHand()
+        
         self.deck = [Card(key) for key in range(Card.numCards)]
         random.shuffle(self.deck)
         
-        
+            
 
 
     def cardRemovedFromDeck(self):
@@ -144,25 +159,38 @@ class Env:   # all the players and table contents
         
 
     def oneHand(self):
+        print("=========== HAND =============")
         numPlayers = len(self.players)
+        self.resetForNewHand()
         
         # Blinds
                 
         self.table.addToPot(self.players[self.table.smallBlind].placeBet(0))
         self.table.addToPot(self.players[self.table.bigBlind].  placeBet(0))     
         
+
+        # preFlop
+        self.deal()
+        self.bettingRound(1)
+        
         """
-        blinds()
-        preFlop()
         flop()
         turn()
         river()
         showDown()
         """
 
+    def bettingRound(self, round):
+        numPlayers = len(self.players)
+        start = (self.table.bigBlind + 1) % numPlayers
+        for i in chain(range(start, numPlayers), range(0, start)):
+            self.table.addToPot(self.players[i].placeBet(round))
+            print("After player", i, "bet")
+            print(self)
+            
+    """
     def oneGame(self):
         numHands = 5
-        self.deal()
         print(self)
         for h in range(numHands):
             self.oneHand()
@@ -170,13 +198,15 @@ class Env:   # all the players and table contents
             # find winner
             winner = max(self.players, key = Player.cardValue)
             print("winner:", winner)
-                     
+   """
         
         
 if __name__ == "__main__":
 
     random.seed(42)
     env = Env(2)
-    env.oneGame()
+    for i in range(3):
+        env.oneHand()
+    
 
     
