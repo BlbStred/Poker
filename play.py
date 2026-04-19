@@ -186,11 +186,13 @@ class Env:   # all the players and table contents
         # flop
         # place 3 cards face up
         self.table.addToCardsOnTable([self.cardRemovedFromDeck() for c in range(3)])
-        
         self.bettingRound(2)             
         
+        # turn()
+        self.table.addToCardsOnTable([self.cardRemovedFromDeck() for c in range(1)])
+        self.bettingRound(3)
+        
         """
-        turn()
         river()
         showDown()
         """
