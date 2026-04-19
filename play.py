@@ -84,13 +84,12 @@ class Table:
         self.advanceButton()
 
     def advanceButton(self):
-        numPlayers = len(self.inPlay)
-        self.button = (self.button + 1) % numPlayers
+        self.button = (self.button + 1) % self.numPlayers
         
-        if numPlayers == 2:  self.smallBlind =  self.button
-        else:                self.smallBlind = (self.button + 1) % numPlayers
+        if self.numPlayers == 2:  self.smallBlind =  self.button
+        else:                     self.smallBlind = (self.button + 1) % self.numPlayers
         
-        self.bigBlind = (self.smallBlind + 1) % numPlayers
+        self.bigBlind = (self.smallBlind + 1) % self.numPlayers
 
 
     def addToPot(self, bet):
@@ -98,8 +97,6 @@ class Table:
         
 
     def __str__(self):
-        numPlayers = len(self.inPlay)
-
         result = "\n"
 
         result += ("\nButton: " + str(self.button) +
@@ -109,20 +106,20 @@ class Table:
         result += "\nPot: " + str(self.pot)
         result += "\nInPlay: " + str(self.inPlay)
         result += "\nBets:"
-        for i in range(numPlayers):
+        for i in range(self.numPlayers):
             result += "\n   " + str(i) + ": " + str(self.bets[0])
 
         return result
 
 class Env:   # all the players and table contents
     def __init__(self, numPlayers):
+        self.numPlayers = numPlayers
         self.table = Table(numPlayers)
         self.players = [Player(i) for i in range(numPlayers)]
         
 
     def resetForNewHand(self):
-        numPlayers = len(self.players)
-        for i in range(numPlayers):
+        for i in range(self.numPlayers):
             self.players[i].resetForNewHand()
 
         self.table.resetForNewHand()
@@ -160,7 +157,6 @@ class Env:   # all the players and table contents
 
     def oneHand(self):
         print("=========== HAND =============")
-        numPlayers = len(self.players)
         self.resetForNewHand()
         
         # Blinds
@@ -181,9 +177,8 @@ class Env:   # all the players and table contents
         """
 
     def bettingRound(self, round):
-        numPlayers = len(self.players)
-        start = (self.table.bigBlind + 1) % numPlayers
-        for i in chain(range(start, numPlayers), range(0, start)):
+        start = (self.table.bigBlind + 1) % self.numPlayers
+        for i in chain(range(start, self.numPlayers), range(0, start)):
             self.table.addToPot(self.players[i].placeBet(round))
             print("After player", i, "bet")
             print(self)
