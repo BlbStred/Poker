@@ -8,8 +8,8 @@ from torch.distributions import Categorical
 
 class Card:
 
-    numSuits = 2
-    numDenom = 3
+    numSuits = 3
+    numDenom = 4
     numCards = numSuits * numDenom
     
 
@@ -34,9 +34,9 @@ class CardSet:   # of cards
     def __init__(self):
         self.cards = []
 
-    def add(self, card):
-        self.cards.append(card)
-        self.cards.sort(key = Card.getKey)   # sort to reduce variety of states
+    def addCards(self, cardList):
+        cardList.sort(key = Card.getKey)   # sort to reduce variety of states
+        self.cards += cardList
 
 
     def __str__(self):
@@ -59,8 +59,8 @@ class Player:
         return "Player " + str(self.id) + ": " + str(self.inHand)
         
             
-    def add(self, card):
-        self.inHand.add(card)
+    def addCards(self, cardList):
+        self.inHand.addCards(cardList)
 
 
     def cardValue(self):
@@ -79,10 +79,12 @@ class Table:
 
     def resetForNewHand(self):
         self.pot    = 0                     # total money
+        self.cardsOnTable = CardSet()
         self.inPlay = [True for i in range(self.numPlayers)]     # whether a player is still in 
         self.bets   = [[]   for i in range(self.numPlayers)]     # sequence of bets for each player
         self.advanceButton()
 
+        
     def advanceButton(self):
         self.button = (self.button + 1) % self.numPlayers
         
@@ -94,16 +96,22 @@ class Table:
 
     def addToPot(self, bet):
         self.pot += bet
+
+        
+    def addToCardsOnTable(self, cardList):
+        self.cardsOnTable.addCards(cardList)
+        
         
 
     def __str__(self):
-        result = "\n"
+        result = "\nPublic on Table:"
 
         result += ("\nButton: " + str(self.button) +
                    "  smallBlind: " + str(self.smallBlind) +
                    "  bigBlind: "   + str(self.bigBlind))
         
-        result += "\nPot: " + str(self.pot)
+        result += "\nCards face up: " + str(self.cardsOnTable)
+        result += "\nPot: " + str(self.pot)        
         result += "\nInPlay: " + str(self.inPlay)
         result += "\nBets:"
         for i in range(self.numPlayers):
@@ -111,6 +119,10 @@ class Table:
 
         return result
 
+
+
+
+    
 class Env:   # all the players and table contents
     def __init__(self, numPlayers):
         self.numPlayers = numPlayers
@@ -136,15 +148,17 @@ class Env:   # all the players and table contents
         return c
 
     def deal(self):
-        for c in range(2):  # 2 cards to each player
-            for p in self.players:
-                p.add(self.cardRemovedFromDeck())
+        for p in self.players:
+            # 2 cards to each player
+            p.addCards([self.cardRemovedFromDeck() for c in range(2)])
+            
 
     def __str__(self):
-        result = "\n"
+        result = ""
         result += str(self.table)        
         
-        result += "\nDeck:"
+        result += "\nPrivate:"
+        result += "\nDeck:"        
         for c in self.deck:
             result += " " + str(c) 
         result += "\n"
@@ -169,8 +183,13 @@ class Env:   # all the players and table contents
         self.deal()
         self.bettingRound(1)
         
+        # flop
+        # place 3 cards face up
+        self.table.addToCardsOnTable([self.cardRemovedFromDeck() for c in range(3)])
+        
+        self.bettingRound(2)             
+        
         """
-        flop()
         turn()
         river()
         showDown()
