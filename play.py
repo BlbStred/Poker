@@ -62,14 +62,59 @@ class Player:
     def cardValue(self):
         return 1-self.id
 
+    def placeBet(self, round):
+        return 0
 
+    
+# what is publicly visible on the table
+class Table:
+
+    def __init__(self, numPlayers):
+        self.pot    = 0                     # total money
+        self.inPlay = [True for i in range(numPlayers)]     # whether a player is still in 
+        self.bets   = [[]   for i in range(numPlayers)]     # sequence of bets for each player
+        self.button = 0                                     # dealer is arbitrary
+        self.advanceButton()
+
+
+    def advanceButton(self):
+        numPlayers = len(self.inPlay)
+        self.button = (self.button + 1) % numPlayers
+        
+        if numPlayers == 2:  self.smallBlind =  self.button
+        else:                self.smallBlind = (self.button + 1) % numPlayers
+        
+        self.bigBlind = (self.smallBlind + 1) % numPlayers
+
+
+    def addToPot(self, bet):
+        self.pot += bet
+        
+
+    def __str__(self):
+        numPlayers = len(self.inPlay)
+
+        result = "\n"
+
+        result += ("\nButton: " + str(self.button) +
+                   "  smallBlind: " + str(self.smallBlind) +
+                   "  bigBlind: "   + str(self.bigBlind))
+        
+        result += "\nPot: " + str(self.pot)
+        result += "\nInPlay: " + str(self.inPlay)
+        result += "\nBets:"
+        for i in range(numPlayers):
+            result += "\n   " + str(i) + ": " + str(self.bets[0])
+
+        return result
 
 class Env:   # all the players and table contents
     def __init__(self, numPlayers):
+        self.table = Table(numPlayers)
         self.players = [Player(i) for i in range(numPlayers)]
         self.deck = [Card(key) for key in range(Card.numCards)]
         random.shuffle(self.deck)
-        self.button = 0             #dealer
+        
         
 
 
@@ -84,7 +129,10 @@ class Env:   # all the players and table contents
                 p.add(self.cardRemovedFromDeck())
 
     def __str__(self):
-        result = "Deck:"
+        result = "\n"
+        result += str(self.table)        
+        
+        result += "\nDeck:"
         for c in self.deck:
             result += " " + str(c) 
         result += "\n"
@@ -98,23 +146,30 @@ class Env:   # all the players and table contents
     def oneHand(self):
         numPlayers = len(self.players)
         
-        self.button = (self.button + 1) % numPlayers
+        # Blinds
+                
+        self.table.addToPot(self.players[self.table.smallBlind].placeBet(0))
+        self.table.addToPot(self.players[self.table.bigBlind].  placeBet(0))     
         
-        if numPlayers == 2:  self.smallBlind =  self.button
-        else:                self.smallBlind = (self.button + 1) % numPlayers
-        
-        self.BigBind = (self.smallBlind + 1) % numPlayers
-
+        """
+        blinds()
+        preFlop()
+        flop()
+        turn()
+        river()
+        showDown()
+        """
 
     def oneGame(self):
         numHands = 5
         self.deal()
+        print(self)
         for h in range(numHands):
             self.oneHand()
-
-        # find winner
-        winner = max(self.players, key = Player.cardValue)
-        print("winner:", winner)
+            print(self)
+            # find winner
+            winner = max(self.players, key = Player.cardValue)
+            print("winner:", winner)
                      
         
         
