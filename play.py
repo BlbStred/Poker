@@ -91,6 +91,10 @@ class Env:   # all the players and table contents
         return result
         
 
+    def oneHand(self):
+        self.button     = (self.button + 1) % self.players
+        self.smallBlind = (self.button + 1) % self.players
+        self.BigBind    = (self.button + 2) % self.players                
                      
         
         
