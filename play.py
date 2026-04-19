@@ -23,6 +23,7 @@ class Card:
         return self.suit * Card.numDenom + self.denom
 
 
+        
     def __str__(self):
         return '[' + str(self.denom) + ['C', 'D', 'H', 'S'][self.suit] + ']'
 
@@ -31,13 +32,24 @@ class Card:
 
 class CardSet:   # of cards
 
-    def __init__(self):
+    def __init__(self, copy=None):
         self.cards = []
+        if copy != None:
+            self.addCards(copy.cards)
 
     def addCards(self, cardList):
         cardList.sort(key = Card.getKey)   # sort to reduce variety of states
         self.cards += cardList
 
+
+    def getCard(self, i):
+        return self.cards[i]
+
+
+    
+    def ranking(self):
+        return 42
+    
 
     def __str__(self):
         result = ""
@@ -48,8 +60,9 @@ class CardSet:   # of cards
 
 class Player:
 
-    def __init__(self, id):
-        self.id   = id
+    def __init__(self, id, table):
+        self.id    = id
+        self.table = table   # whatever is visible on the table
 
     
     def resetForNewHand(self):
@@ -62,9 +75,25 @@ class Player:
     def addCards(self, cardList):
         self.inHand.addCards(cardList)
 
+    def pickCommunityCards(self):
+        self.bestRank = 0     # remains if player folded
+        self.bestCards = None # the five best bards
+        
+        # collect best combination of three community cards
+        fiveCards = CardSet(copy=self.inHand)
+        for i in range(0, 5):
+            for j in range(i+1, 5):
+                for k in range(j+1, 5):
+                    fiveCards.addCards([self.table.getCardOnTable(i),
+                                        self.table.getCardOnTable(j),
+                                        self.table.getCardOnTable(k)])
+                    if fiveCards.ranking() > self.bestRank:
+                        self.bestRank = fiveCards.ranking()
+                        self.bestCards = fiveCards
+                        
 
     def cardValue(self):
-        return 1-self.id
+        return self.bestRank
 
     def placeBet(self, round):
         return 0
@@ -97,6 +126,10 @@ class Table:
     def addToPot(self, bet):
         self.pot += bet
 
+    def getCardOnTable(self, i):
+        return self.cardsOnTable.getCard(i)
+                                   
+
         
     def addToCardsOnTable(self, cardList):
         self.cardsOnTable.addCards(cardList)
@@ -127,7 +160,7 @@ class Env:   # all the players and table contents
     def __init__(self, numPlayers):
         self.numPlayers = numPlayers
         self.table = Table(numPlayers)
-        self.players = [Player(i) for i in range(numPlayers)]
+        self.players = [Player(i, self.table) for i in range(numPlayers)]
         
 
     def resetForNewHand(self):
@@ -196,10 +229,15 @@ class Env:   # all the players and table contents
         self.table.addToCardsOnTable([self.cardRemovedFromDeck() for c in range(1)])
         self.bettingRound(3)
         
-        """
-        showDown()
-        """
+        
+        # showDown
+        for p in self.players:
+            p.pickCommunityCards()
+        winner = max(self.players, key = Player.cardValue)
+        print("winner:", winner)
+   
 
+        
     def bettingRound(self, round):
         start = (self.table.bigBlind + 1) % self.numPlayers
         for i in chain(range(start, self.numPlayers), range(0, start)):
@@ -207,17 +245,7 @@ class Env:   # all the players and table contents
             print("After player", i, "bet")
             print(self)
             
-    """
-    def oneGame(self):
-        numHands = 5
-        print(self)
-        for h in range(numHands):
-            self.oneHand()
-            print(self)
-            # find winner
-            winner = max(self.players, key = Player.cardValue)
-            print("winner:", winner)
-   """
+    
         
         
 if __name__ == "__main__":
