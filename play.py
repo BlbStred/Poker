@@ -188,12 +188,15 @@ class Env:   # all the players and table contents
         self.table.addToCardsOnTable([self.cardRemovedFromDeck() for c in range(3)])
         self.bettingRound(2)             
         
-        # turn()
+        # turn
+        self.table.addToCardsOnTable([self.cardRemovedFromDeck() for c in range(1)])
+        self.bettingRound(3)
+
+        # river
         self.table.addToCardsOnTable([self.cardRemovedFromDeck() for c in range(1)])
         self.bettingRound(3)
         
         """
-        river()
         showDown()
         """
 
