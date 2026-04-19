@@ -96,9 +96,14 @@ class Env:   # all the players and table contents
         
 
     def oneHand(self):
-        self.button     = (self.button + 1) % len(self.players)
-        self.smallBlind = (self.button + 1) % len(self.players)
-        self.BigBind    = (self.button + 2) % len(self.players)
+        numPlayers = len(self.players)
+        
+        self.button = (self.button + 1) % numPlayers
+        
+        if numPlayers == 2:  self.smallBlind =  self.button
+        else:                self.smallBlind = (self.button + 1) % numPlayers
+        
+        self.BigBind = (self.smallBlind + 1) % numPlayers
 
 
     def oneGame(self):
