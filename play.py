@@ -1,4 +1,5 @@
 import random
+import copy
 from itertools import chain
 import torch
 import torch.nn as nn
@@ -11,6 +12,7 @@ class Card:
     numSuits = 3
     numDenom = 4
     numCards = numSuits * numDenom
+    numRanks = numDenom               # individual cards divided into this many ranks
     
 
     def __init__(self, key):  # index into all cards
@@ -38,10 +40,10 @@ class Card:
 
 class CardSet:   # of cards
 
-    def __init__(self, copy=None):
+    def __init__(self, init=None):
         self.cards = []
-        if copy != None:
-            self.addCards(copy.cards)
+        if init != None:
+            self.addCards(copy.deepcopy(init.cards))
 
     def addCards(self, cardList):
         cardList.sort(key = Card.getKey)   # sort to reduce variety of states
@@ -54,7 +56,18 @@ class CardSet:   # of cards
 
     
     def ranking(self):
+        # For conveniece sort in increasing order
+        self.cards.sort(key = Card.getKey)
+        print(self)
+        # ranking =
+        # pattern rank * Card.numRanks +
+        # rank of highest card
+
+        patternRank = 100
+        
+        # Royal flush
         return 42
+        
     
 
     def __str__(self):
@@ -84,18 +97,19 @@ class Player:
     def pickCommunityCards(self):
         self.bestRank = 0     # remains if player folded
         self.bestCards = None # the five best bards
-        
-        # collect best combination of three community cards
-        fiveCards = CardSet(copy=self.inHand)
+                
         for i in range(0, 5):
             for j in range(i+1, 5):
                 for k in range(j+1, 5):
+                    fiveCards = CardSet(init=self.inHand)
                     fiveCards.addCards([self.table.getCardOnTable(i),
                                         self.table.getCardOnTable(j),
                                         self.table.getCardOnTable(k)])
-                    if fiveCards.ranking() > self.bestRank:
+                    rank = fiveCards.ranking()
+                    if rank > self.bestRank:
                         self.bestRank = fiveCards.ranking()
                         self.bestCards = fiveCards
+                        
                         
 
     def cardValue(self):
@@ -248,8 +262,8 @@ class Env:   # all the players and table contents
         start = (self.table.bigBlind + 1) % self.numPlayers
         for i in chain(range(start, self.numPlayers), range(0, start)):
             self.table.addToPot(self.players[i].placeBet(round))
-            print("After player", i, "bet")
-            print(self)
+            #print("After player", i, "bet")
+            #print(self)
             
     
         
