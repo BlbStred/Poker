@@ -23,6 +23,9 @@ class Card:
         return self.suit * Card.numDenom + self.denom
 
 
+    def ranking(self):
+        return self.denom
+    
         
     def __str__(self):
         return ('['                                                                            +
